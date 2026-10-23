@@ -1,0 +1,484 @@
+[
+    {
+        "id": "63a89909ee927b5c",
+        "type": "tab",
+        "label": "Simon UI",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "7814c4ab0b3266f5",
+        "type": "change",
+        "z": "63a89909ee927b5c",
+        "name": "Set Board1 Base URL",
+        "rules": [
+            {
+                "t": "set",
+                "p": "baseUrl",
+                "pt": "flow",
+                "to": "http://10.217.86.1",
+                "tot": "str"
+            }
+        ],
+        "x": 220,
+        "y": 80,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "bffd0ceab872e7f7",
+        "type": "inject",
+        "z": "63a89909ee927b5c",
+        "name": "Poll (1s)",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "1",
+        "once": true,
+        "onceDelay": "0.5",
+        "payload": "",
+        "payloadType": "date",
+        "x": 120,
+        "y": 140,
+        "wires": [
+            [
+                "4233d7ec8ff48fbf"
+            ]
+        ]
+    },
+    {
+        "id": "4233d7ec8ff48fbf",
+        "type": "function",
+        "z": "63a89909ee927b5c",
+        "name": "Build URLs",
+        "func": "const base = flow.get('baseUrl') || 'http://10.217.86.1';\nreturn [\n  { url: base + '/status' },\n  { url: base + '/runs' }\n];",
+        "outputs": 2,
+        "x": 280,
+        "y": 140,
+        "wires": [
+            [
+                "333aef96b06f443a"
+            ],
+            [
+                "a308f9512bfa0622"
+            ]
+        ]
+    },
+    {
+        "id": "333aef96b06f443a",
+        "type": "http request",
+        "z": "63a89909ee927b5c",
+        "name": "GET /status",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "",
+        "x": 470,
+        "y": 120,
+        "wires": [
+            [
+                "4ca55cbd8d831c0f"
+            ]
+        ]
+    },
+    {
+        "id": "a308f9512bfa0622",
+        "type": "http request",
+        "z": "63a89909ee927b5c",
+        "name": "GET /runs",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "",
+        "x": 470,
+        "y": 180,
+        "wires": [
+            [
+                "3beb3b1eb587090b"
+            ]
+        ]
+    },
+    {
+        "id": "4ca55cbd8d831c0f",
+        "type": "function",
+        "z": "63a89909ee927b5c",
+        "name": "Map status to UI",
+        "func": "const p = msg.payload || {};\nconst outState = { payload: p.gameState ?? '—' };\nconst outTop   = { payload: p.topScore ?? 0 };\nconst outLevel = { payload: p.currentLevel ?? 0 };\nconst outRun   = { payload: (p.runActive ? 'true' : 'false') };\nconst outSeq   = { payload: p.currentSequence ?? '' };\nconst outDiff  = { payload: p.difficulty ?? '—' };\nconst maxSeq = p.maxSeq ?? 255;\nconst outLevelGauge = { payload: p.currentLevel ?? 0, ui_control: { max: maxSeq } };\nconst outTopGauge   = { payload: p.topScore ?? 0, ui_control: { max: maxSeq } };\nreturn [outState, outTop, outLevel, outRun, outSeq, outDiff, outLevelGauge, outTopGauge];",
+        "outputs": 8,
+        "x": 680,
+        "y": 120,
+        "wires": [
+            [
+                "60c7db5d297ffbd4"
+            ],
+            [
+                "ef5995c1a8061254"
+            ],
+            [
+                "67226cd18cfa63fa"
+            ],
+            [
+                "17599d4f0ca89eee"
+            ],
+            [
+                "27a86768f07e6a77"
+            ],
+            [
+                "750ec0dd58c064bb"
+            ],
+            [
+                "179505df51c1a795"
+            ],
+            [
+                "8def167c4edbf056"
+            ]
+        ]
+    },
+    {
+        "id": "3beb3b1eb587090b",
+        "type": "function",
+        "z": "63a89909ee927b5c",
+        "name": "Runs -> table",
+        "func": "const p = msg.payload || {};\nconst runs = p.runs || [];\nmsg.payload = runs.map(r => ({\n  score: r.score,\n  time: r.time,\n  difficulty: r.difficulty ?? '—',\n  sequence: r.sequence\n}));\nreturn msg;",
+        "outputs": 1,
+        "x": 680,
+        "y": 220,
+        "wires": [
+            [
+                "b65842363505b0cd"
+            ]
+        ]
+    },
+    {
+        "id": "60c7db5d297ffbd4",
+        "type": "ui_text",
+        "z": "63a89909ee927b5c",
+        "group": "grp_status",
+        "order": 1,
+        "width": 6,
+        "height": 1,
+        "name": "Game State",
+        "label": "Game State",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "x": 950,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "17599d4f0ca89eee",
+        "type": "ui_text",
+        "z": "63a89909ee927b5c",
+        "group": "grp_status",
+        "order": 2,
+        "width": 6,
+        "height": 1,
+        "name": "Run Active",
+        "label": "Run Active",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "x": 950,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "ef5995c1a8061254",
+        "type": "ui_text",
+        "z": "63a89909ee927b5c",
+        "group": "grp_status",
+        "order": 3,
+        "width": 6,
+        "height": 1,
+        "name": "Top Score (big)",
+        "label": "Top Score",
+        "format": "<span style=\"font-size:28px;font-weight:700;\">{{msg.payload}}</span>",
+        "layout": "row-spread",
+        "x": 960,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "67226cd18cfa63fa",
+        "type": "ui_text",
+        "z": "63a89909ee927b5c",
+        "group": "grp_status",
+        "order": 4,
+        "width": 6,
+        "height": 1,
+        "name": "Current Level (big)",
+        "label": "Current Level",
+        "format": "<span style=\"font-size:28px;font-weight:700;\">{{msg.payload}}</span>",
+        "layout": "row-spread",
+        "x": 980,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "27a86768f07e6a77",
+        "type": "ui_text",
+        "z": "63a89909ee927b5c",
+        "group": "grp_status",
+        "order": 5,
+        "width": 12,
+        "height": 1,
+        "name": "Current Sequence",
+        "label": "Current Sequence",
+        "format": "<code style=\"font-size:20px;letter-spacing:3px;\">{{msg.payload}}</code>",
+        "layout": "row-spread",
+        "x": 970,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "750ec0dd58c064bb",
+        "type": "ui_text",
+        "z": "63a89909ee927b5c",
+        "group": "grp_status",
+        "order": 6,
+        "width": 6,
+        "height": 1,
+        "name": "Difficulty",
+        "label": "Difficulty",
+        "format": "<span style=\"font-size:24px;font-weight:700;\">{{msg.payload}}</span>",
+        "layout": "row-spread",
+        "x": 960,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "179505df51c1a795",
+        "type": "ui_gauge",
+        "z": "63a89909ee927b5c",
+        "name": "Level gauge",
+        "group": "grp_status",
+        "order": 7,
+        "width": 6,
+        "height": 4,
+        "gtype": "gage",
+        "title": "Current Level",
+        "label": "",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "255",
+        "colors": [
+            "#00bcd4",
+            "#00bcd4",
+            "#00bcd4"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "x": 950,
+        "y": 250,
+        "wires": []
+    },
+    {
+        "id": "8def167c4edbf056",
+        "type": "ui_gauge",
+        "z": "63a89909ee927b5c",
+        "name": "Top score gauge",
+        "group": "grp_status",
+        "order": 8,
+        "width": 6,
+        "height": 4,
+        "gtype": "gage",
+        "title": "Top Score",
+        "label": "",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "255",
+        "colors": [
+            "#00bcd4",
+            "#00bcd4",
+            "#00bcd4"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "x": 950,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "e2b4142a1ddf1cd5",
+        "type": "ui_button",
+        "z": "63a89909ee927b5c",
+        "name": "START",
+        "group": "grp_controls",
+        "order": 1,
+        "width": 6,
+        "height": 1,
+        "passthru": false,
+        "label": "START",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "icon": "play_arrow",
+        "payload": "start",
+        "payloadType": "str",
+        "x": 180,
+        "y": 320,
+        "wires": [
+            [
+                "ea2817710618140b"
+            ]
+        ]
+    },
+    {
+        "id": "a7c80de7ea88cc5f",
+        "type": "ui_button",
+        "z": "63a89909ee927b5c",
+        "name": "RESET",
+        "group": "grp_controls",
+        "order": 2,
+        "width": 6,
+        "height": 1,
+        "passthru": false,
+        "label": "RESET",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "icon": "refresh",
+        "payload": "reset",
+        "payloadType": "str",
+        "x": 180,
+        "y": 360,
+        "wires": [
+            [
+                "bbfd31db66c413ad"
+            ]
+        ]
+    },
+    {
+        "id": "ea2817710618140b",
+        "type": "function",
+        "z": "63a89909ee927b5c",
+        "name": "POST /start",
+        "func": "const base = flow.get('baseUrl') || 'http://10.217.86.1';\nmsg.method = 'GET';\nmsg.url = base + '/start';\nreturn msg;",
+        "outputs": 1,
+        "x": 360,
+        "y": 320,
+        "wires": [
+            [
+                "823504131a996ecc"
+            ]
+        ]
+    },
+    {
+        "id": "bbfd31db66c413ad",
+        "type": "function",
+        "z": "63a89909ee927b5c",
+        "name": "GET /reset",
+        "func": "const base = flow.get('baseUrl') || 'http://10.217.86.1';\nmsg.method = 'GET';\nmsg.url = base + '/reset';\nreturn msg;",
+        "outputs": 1,
+        "x": 360,
+        "y": 360,
+        "wires": [
+            [
+                "823504131a996ecc"
+            ]
+        ]
+    },
+    {
+        "id": "823504131a996ecc",
+        "type": "http request",
+        "z": "63a89909ee927b5c",
+        "name": "Send command",
+        "method": "use",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "",
+        "x": 560,
+        "y": 340,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "b65842363505b0cd",
+        "type": "ui_table",
+        "z": "63a89909ee927b5c",
+        "group": "grp_runs",
+        "name": "Last Runs",
+        "order": 1,
+        "width": 12,
+        "height": 6,
+        "columns": [
+            {
+                "field": "score",
+                "title": "Score",
+                "width": "15%",
+                "align": "center"
+            },
+            {
+                "field": "time",
+                "title": "Time",
+                "width": "25%",
+                "align": "center"
+            },
+            {
+                "field": "difficulty",
+                "title": "Difficulty",
+                "width": "20%",
+                "align": "center"
+            },
+            {
+                "field": "sequence",
+                "title": "Sequence",
+                "width": "40%",
+                "align": "center"
+            }
+        ],
+        "outputs": 0,
+        "x": 880,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "grp_status",
+        "type": "ui_group",
+        "name": "Live Status",
+        "tab": "tab_simon",
+        "order": 1,
+        "disp": true,
+        "width": "12",
+        "collapse": false
+    },
+    {
+        "id": "grp_controls",
+        "type": "ui_group",
+        "name": "Controls",
+        "tab": "tab_simon",
+        "order": 2,
+        "disp": true,
+        "width": "12",
+        "collapse": false
+    },
+    {
+        "id": "grp_runs",
+        "type": "ui_group",
+        "name": "Last Runs",
+        "tab": "tab_simon",
+        "order": 3,
+        "disp": true,
+        "width": "12",
+        "collapse": false
+    },
+    {
+        "id": "tab_simon",
+        "type": "ui_tab",
+        "name": "Simon Says",
+        "icon": "dashboard",
+        "order": 1
+    },
+    {
+        "id": "784adca69f96e958",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-dashboard": "3.6.6",
+            "node-red-node-ui-table": "0.4.5"
+        }
+    }
+]
